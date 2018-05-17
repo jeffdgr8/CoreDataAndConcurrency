@@ -8,6 +8,7 @@
 
 import CoreData
 import Foundation
+import EncryptedCoreData
 
 final class CoreDataManager {
 
@@ -57,28 +58,25 @@ final class CoreDataManager {
     }()
 
     private lazy var persistentStoreCoordinator: NSPersistentStoreCoordinator = {
-        let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: self.managedObjectModel)
-
         let fileManager = FileManager.default
         let storeName = "\(self.modelName).sqlite"
-
+        
         let documentsDirectoryURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
-
+        
         let persistentStoreURL = documentsDirectoryURL.appendingPathComponent(storeName)
-
+        
         do {
-            let options = [ NSInferMappingModelAutomaticallyOption : true,
-                            NSMigratePersistentStoresAutomaticallyOption : true]
-
-            try persistentStoreCoordinator.addPersistentStore(ofType: NSSQLiteStoreType,
-                                                              configurationName: nil,
-                                                              at: persistentStoreURL,
-                                                              options: options)
+            let options: [String : Any] = [ NSInferMappingModelAutomaticallyOption : true,
+                                            NSMigratePersistentStoresAutomaticallyOption : true,
+                                            EncryptedStorePassphraseKey : "SOME_PASSWORD",
+                                            EncryptedStoreDatabaseLocation : persistentStoreURL]
+            
+            let persistentStoreCoordinator = try EncryptedStore.make(options: options, managedObjectModel: self.managedObjectModel, error: ())
+            
+            return persistentStoreCoordinator
         } catch {
             fatalError("Unable to Load Persistent Store")
         }
-        
-        return persistentStoreCoordinator
     }()
 
     // MARK: - Notification Handling
