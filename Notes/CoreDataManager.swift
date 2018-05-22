@@ -10,6 +10,8 @@ import CoreData
 import Foundation
 import EncryptedCoreData
 
+let encrypt = true
+
 final class CoreDataManager {
 
     // MARK: - Properties
@@ -78,13 +80,25 @@ final class CoreDataManager {
         let persistentStoreURL = documentsDirectoryURL.appendingPathComponent(storeName)
         
         do {
-            let options: [String : Any] = [ NSInferMappingModelAutomaticallyOption : true,
-                                            NSMigratePersistentStoresAutomaticallyOption : true,
-                                            EncryptedStorePassphraseKey : "SOME_PASSWORD",
-                                            EncryptedStoreDatabaseLocation : persistentStoreURL]
-            
-            let persistentStoreCoordinator = try EncryptedStore.make(options: options, managedObjectModel: self.managedObjectModel, error: ())
-            
+            var persistentStoreCoordinator: NSPersistentStoreCoordinator
+            if (encrypt) {
+                let options: [String : Any] = [ NSInferMappingModelAutomaticallyOption : true,
+                                                NSMigratePersistentStoresAutomaticallyOption : true,
+                                                EncryptedStorePassphraseKey : "SOME_PASSWORD",
+                                                EncryptedStoreDatabaseLocation : persistentStoreURL]
+                
+                persistentStoreCoordinator = try EncryptedStore.make(options: options, managedObjectModel: self.managedObjectModel, error: ())
+            } else {
+                persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: self.managedObjectModel)
+                
+                let options = [ NSInferMappingModelAutomaticallyOption : true,
+                                NSMigratePersistentStoresAutomaticallyOption : true]
+                
+                try persistentStoreCoordinator.addPersistentStore(ofType: NSSQLiteStoreType,
+                                                                  configurationName: nil,
+                                                                  at: persistentStoreURL,
+                                                                  options: options)
+            }
             return persistentStoreCoordinator
         } catch {
             fatalError("Unable to Load Persistent Store")
