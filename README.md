@@ -1,3 +1,19 @@
+## Sample to illustrate the usage of the [Encrypted Core Data](https://github.com/project-imas/encrypted-core-data) SQLCipher library
+
+This sample creates a Core Data stack that consists of two persistent store coordinators. One as the main coordinator, connected to a private queue persisting context, with a main queue context as its child. The second persistent store coordinator has a private queue batch worker context, to be used for batch import jobs, as described in [this 2013 WWDC session](https://developer.apple.com/videos/play/wwdc2013/211/) (~27:50).
+
+![Core Data Stack](https://www.bignerdranch.com/assets/img/blog/2015/09/BNR_Stack.png)
+
+###### _(Image from [Big Nerd Ranch core data stack](https://www.bignerdranch.com/blog/introducing-the-big-nerd-ranch-core-data-stack/))_
+
+`CoreDataManager.swift` has a constant `encrypt` which can be toggled to test the sample using the Encrypted Core Data SQLCipher store or the standard SQLite store.
+
+The sample will continuously create new `Note` objects on the batch import context and then fetch all `Note` objects on the main context while at the same time deleting some random `Note` objects on the batch import context.
+
+Using the standard SQLite store, everything works as expected. Using the encrypted store, the parallel operations on multiple persistent store coordinators will often result in failed operations with the error: `Error Domain=NSSQLiteErrorDomain Code=5 "(null)" UserInfo={EncryptedStoreErrorMessage=database is locked}, The operation couldn’t be completed. (NSSQLiteErrorDomain error 5.)` This is likely because Encrypted Core Data does not utilize write-ahead logging (WAL) journal mode, as the default Core Data SQLite implementation does. [Issue #212](https://github.com/project-imas/encrypted-core-data/issues/212) discusses this.
+
+## Forked Sample Readme
+
 ### [Core Data and Concurrency](https://cocoacasts.com/core-data-and-concurrency/)
 
 #### Author: Bart Jacobs
