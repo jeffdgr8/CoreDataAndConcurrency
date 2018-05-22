@@ -50,6 +50,84 @@ class ViewController: UIViewController {
             print("Unable to Save Note")
             print("\(fetchError), \(fetchError.localizedDescription)")
         }
+        
+        self.parallelPersistentStoreCoordinatorUsage()
+    }
+
+    // MARK: - Testing
+
+    private func parallelPersistentStoreCoordinatorUsage() {
+        let importContext = self.coreDataManager.importManagedObjectContext
+        importContext.perform {
+            for _ in 1...1000 {
+                // Generate a bunch of notes
+                var importNotes = [Note]()
+                for _ in 1...100 {
+                    importNotes.append(self.createNote(with: self.randomString(length: 5), on: importContext))
+                }
+                do {
+                    print("Saving \(importNotes.count) Notes")
+                    try importContext.save()
+                    
+                    DispatchQueue.main.async {
+                        do {
+                            try self.fetchedResultsController.performFetch()
+                            self.tableView.reloadData()
+                        } catch {
+                            print("Unable to fetch Notes")
+                            print("\(error), \(error.localizedDescription)")
+                        }
+                    }
+                } catch {
+                    print("Unable to save import Notes")
+                    print("\(error), \(error.localizedDescription)")
+                }
+                // Delete some random notes
+                for _ in 1...20 {
+                    let fetch: NSFetchRequest<Note> = Note.fetchRequest()
+                    fetch.predicate = NSPredicate(format: "title BEGINSWITH %@", self.randomString(length: 1))
+                    do {
+                        let result = try importContext.fetch(fetch)
+                        print("Deleting \(result.count) random Notes")
+                        for note in result {
+                            importContext.delete(note)
+                        }
+                    } catch {
+                        print("Unable to fetch random Notes to delete")
+                        print("\(error), \(error.localizedDescription)")
+                    }
+                    do {
+                        try importContext.save()
+                    } catch {
+                        print("Unable to save deleted Notes")
+                        print("\(error), \(error.localizedDescription)")
+                    }
+                }
+            }
+        }
+    }
+
+    @discardableResult
+    private func createNote(with title: String, on context: NSManagedObjectContext) -> Note {
+        // Create Note
+        let note = Note(context: context)
+        
+        // Populate Note
+        note.content = ""
+        note.title = title
+        note.updatedAt = Date()
+        note.createdAt = Date()
+        return note
+    }
+
+    func randomString(length:Int) -> String {
+        let charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        var c = charSet.map { String($0) }
+        var s:String = ""
+        for _ in (1...length) {
+            s.append(c[Int(arc4random()) % c.count])
+        }
+        return s
     }
 
     // MARK: - Navigation

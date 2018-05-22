@@ -45,6 +45,14 @@ final class CoreDataManager {
         return managedObjectContext
     }()
 
+    private(set) lazy var importManagedObjectContext: NSManagedObjectContext = {
+        let managedObjectContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        
+        managedObjectContext.persistentStoreCoordinator = self.importPersistentStoreCoordinator
+
+        return managedObjectContext
+    }()
+    
     private lazy var managedObjectModel: NSManagedObjectModel = {
         guard let modelURL = Bundle.main.url(forResource: self.modelName, withExtension: "momd") else {
             fatalError("Unable to Find Data Model")
@@ -57,7 +65,11 @@ final class CoreDataManager {
         return managedObjectModel
     }()
 
-    private lazy var persistentStoreCoordinator: NSPersistentStoreCoordinator = {
+    private lazy var persistentStoreCoordinator: NSPersistentStoreCoordinator = self.makePersistentStoreCoordinator()
+
+    private lazy var importPersistentStoreCoordinator: NSPersistentStoreCoordinator = self.makePersistentStoreCoordinator()
+
+    private func makePersistentStoreCoordinator() -> NSPersistentStoreCoordinator {
         let fileManager = FileManager.default
         let storeName = "\(self.modelName).sqlite"
         
@@ -77,7 +89,7 @@ final class CoreDataManager {
         } catch {
             fatalError("Unable to Load Persistent Store")
         }
-    }()
+    }
 
     // MARK: - Notification Handling
 
