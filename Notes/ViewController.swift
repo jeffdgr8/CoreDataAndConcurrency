@@ -179,8 +179,8 @@ extension ViewController: AddNoteViewControllerDelegate {
         // Populate Note
         note.content = ""
         note.title = title
-        note.updatedAt = NSDate()
-        note.createdAt = NSDate()
+        note.updatedAt = Date()
+        note.createdAt = Date()
 
         do {
             try note.managedObjectContext?.save()
