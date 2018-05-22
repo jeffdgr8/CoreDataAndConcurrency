@@ -80,12 +80,13 @@ final class CoreDataManager {
         let persistentStoreURL = documentsDirectoryURL.appendingPathComponent(storeName)
         
         do {
-            var persistentStoreCoordinator: NSPersistentStoreCoordinator
+            let persistentStoreCoordinator: NSPersistentStoreCoordinator
             if (encrypt) {
                 let options: [String : Any] = [ NSInferMappingModelAutomaticallyOption : true,
                                                 NSMigratePersistentStoresAutomaticallyOption : true,
                                                 EncryptedStorePassphraseKey : "SOME_PASSWORD",
-                                                EncryptedStoreDatabaseLocation : persistentStoreURL]
+                                                EncryptedStoreDatabaseLocation : persistentStoreURL,
+                                                NSSQLitePragmasOption: ["journal_mode" : "WAL"]]
                 
                 persistentStoreCoordinator = try EncryptedStore.make(options: options, managedObjectModel: self.managedObjectModel, error: ())
             } else {
