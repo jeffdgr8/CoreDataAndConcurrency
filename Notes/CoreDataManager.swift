@@ -86,7 +86,8 @@ final class CoreDataManager {
                                                 NSMigratePersistentStoresAutomaticallyOption : true,
                                                 EncryptedStorePassphraseKey : "SOME_PASSWORD",
                                                 EncryptedStoreDatabaseLocation : persistentStoreURL,
-                                                NSSQLitePragmasOption: ["journal_mode" : "WAL"]]
+                                                NSSQLitePragmasOption: ["journal_mode" : "WAL",
+                                                                        "busy_timeout" : "60000"]]
                 
                 persistentStoreCoordinator = try EncryptedStore.make(options: options, managedObjectModel: self.managedObjectModel, error: ())
             } else {

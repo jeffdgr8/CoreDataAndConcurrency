@@ -6,5 +6,5 @@ target 'Notes' do
   use_frameworks!
 
   # Pods for Notes
-  pod 'EncryptedCoreData', :git => 'https://github.com/project-imas/encrypted-core-data.git'
+  pod 'EncryptedCoreData', :git => 'https://github.com/jeffdgr8/encrypted-core-data.git', :branch => 'salesrabbit'
 end
